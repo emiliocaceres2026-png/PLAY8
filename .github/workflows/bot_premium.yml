@@ -27,6 +27,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install telethon cryptg
 
+      # Si guardaste el secret, lo restaura; si subiste el archivo directo, lo respeta
+      - name: Restaurar sesion de Telethon
+        env:
+          TELETHON_SESSION_BASE64: ${{ secrets.TELETHON_SESSION_BASE64 }}
+        run: |
+          if [ -n "$TELETHON_SESSION_BASE64" ]; then
+            echo "$TELETHON_SESSION_BASE64" | base64 --decode > sesion_premium.session
+          fi
+
       - name: Ejecutar PLAY8.py
         run: |
           python -u PLAY8.py
