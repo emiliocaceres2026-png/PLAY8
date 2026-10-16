@@ -1,31 +1,15 @@
 import time
 import random
 import asyncio
-import threading
-import sys
-from datetime import datetime, timedelta, timezone
+import os
+import json
+from datetime import datetime, timedelta
 from telethon import TelegramClient
 
-# ---------------- CONFIGURACIÓN USERBOT ----------------
-API_ID = 30776682
-API_HASH = 'd2e9ad1c3dda250716a24a73d77ae6a6'
+API_ID = 30370336
+API_HASH = '3997f17c527e08b887ea3a0679c9c121'
 
-CANALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo'] 
-
-LINK_ADMIN = 'https://t.me/apkpredictor'
-LINK_VIP = 'https://t.me/+oFnrUl2VKhU1YWJh'
-LINK_FREE = 'https://www.apkpredictoraviator.com'
-
-# --- ZONAS HORARIAS REALES ---
-TZ_COL_ECU = timezone(timedelta(hours=-5))  # Colombia, Ecuador, Global (UTC-5)
-TZ_MEX = timezone(timedelta(hours=-6))      # México (UTC-6)
-
-def obtener_hora_local(pais_str):
-    if "MÉXICO" in pais_str:
-        return datetime.now(TZ_MEX)
-    return datetime.now(TZ_COL_ECU)
-
-# --- EMOJIS PREMIUM ---
+# --- EMOJIS PREMIUM OFICIALES DEL PROYECTO ---
 E_ESTRELLA = '<tg-emoji emoji-id="5370784581341422520">⭐️</tg-emoji>'
 E_GAFAS = '<tg-emoji emoji-id="5235684778727974441">😎</tg-emoji>'
 E_PULGAR = '<tg-emoji emoji-id="5393130162311157022">👍</tg-emoji>'
@@ -38,151 +22,229 @@ E_REGALO = '<tg-emoji emoji-id="5215668908278686541">🎁</tg-emoji>'
 E_ADN2 = '<tg-emoji emoji-id="5215673679987355184">🧬</tg-emoji>'
 E_DIAMANTE = '<tg-emoji emoji-id="6059684519437405439">💎</tg-emoji>'
 
-PLATAFORMAS = [
-     {"nombre":"ECUABET", "pais":f"{E_DIAMANTE} ECUADOR {E_DIAMANTE}"},
-     {"nombre":"DORADOBET", "pais":f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
-     {"nombre":"BETPLAY", "pais":f"{E_DIAMANTE} COLOMBIA {E_DIAMANTE}"},
-     {"nombre":"RUSBETH", "pais":f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
-     {"nombre":"BETSON", "pais":f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
-     {"nombre":"BETMEXICO", "pais":f"{E_DIAMANTE} MÉXICO {E_DIAMANTE}"},
-     {"nombre":"1XBET", "pais":f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
-     {"nombre":"1WIN", "pais":f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"}
-]
+path = os.path.expanduser("~/Desktop/asistente_premium")
+os.makedirs(path, exist_ok=True)
+ARCHIVO_REGISTRO_CLIENTES = os.path.join(path, "clientes_atendidos.json")
 
-lock_telethon = threading.Lock()
+# Rutas exactas de tus carpetas de audios
+CARPETA_AUDIO_DUDA = r"C:\Users\carls\Desktop\AUDIO DUDA"
 
-def enviar_mensajes_premium(lote_mensajes):
-    with lock_telethon:
-        async def _send():
-            client = TelegramClient('sesion_premium', API_ID, API_HASH)
-            await client.connect()
-            for canal_id, texto in lote_mensajes:
-                try:
-                    await client.send_message(canal_id, texto, parse_mode='html', link_preview=False)
-                    print(f"✅ {canal_id}: Mensaje enviado exitosamente.")
-                except Exception as e:
-                    print(f"❌ Error enviando a {canal_id}: {e}")
-                await asyncio.sleep(3)
-            await client.disconnect()
-        
-        asyncio.run(_send())
+if os.path.exists(ARCHIVO_REGISTRO_CLIENTES):
+    with open(ARCHIVO_REGISTRO_CLIENTES, "r", encoding="utf-8") as f:
+        try:
+            clientes_atendidos = json.load(f)
+        except:
+            clientes_atendidos = {}
+else:
+    clientes_atendidos = {}
 
-# ----------------- HILO PROMOCIONAL (CADA 8 MINUTOS) -----------------
-def hilo_info_8_minutos():
+def guardar_registro_clientes():
+    with open(ARCHIVO_REGISTRO_CLIENTES, "w", encoding="utf-8") as f:
+        json.dump(clientes_atendidos, f, indent=4, ensure_ascii=False)
+
+client = TelegramClient(os.path.join(path, "sesion_nueva_prueba"), API_ID, API_HASH)
+
+async def tarea_escanear_mensajes_privados():
+    print("🤖 Escáner activo de chats privados con palabras clave de bienvenida iniciado...")
+
+    palabras_inicio = ["hola", "hola me interesa", "hola quiero ganar", "estoy interesado", "deseo informacion", "informacion"]
+    palabras_duda = ["duda", "miedo", "inconfiable", "no puedo", "no", "como así", "como asi", "desconfio", "inseguro", "inseguridad", "estafa", "falso", "datos", "contra", "contraseña", "por que", "por qué", "como se", "cómo se"]
+    dominios_correo = ["@gmail", "@hotmail", "@outlook", "@yahoo", "@icloud"]
+
     while True:
-        time.sleep(8 * 60)
-        
-        texto_promo = (
-            f"{E_ESTRELLA} <b>HOLA</b> {E_ESTRELLA} {E_GAFAS}\n"
-            f"{E_PULGAR} <b>MUCHO GUSTO MI NOMBRE ES</b> {E_PULGAR}\n\n"
-            f"  {E_FLECHA} <b>WILLIAM ROBERT</b> {E_FLECHA}\n\n"
-            f"{E_BOLSA} TE COMENTO CÓMO TRABAJAMOS, {E_COHETE} Y SÍ TE INTERESA ME CONFIRMAS, NOSOTROS TRABAJAMOS {E_DIAMANTE} 40% {E_DIAMANTE} {E_DIVISAS} 60% {E_DIVISAS} DE LAS GANANCIAS QUE SE OBTENGAN YA QUE TRABAJAMOS CON APLICACIONES PREDICTOR QUE NOS INDICAN CADA SECUENCIA Y CADA ALGORITMO QUE ESTEMOS LLEVANDO A CABO YA QUE  MANEJAMOS RESULTADOS {E_DIAMANTE} 100% {E_DIAMANTE} EFECTIVOS SI TE INTERESA TRABAJAR CON NOSOTROS ME CONFIRMA {E_FLECHA}\n\n\n"
-            f"{E_ADN1} <b>PRIEMERO GANAS LUEGO PAGAS MANEJAMOS UN RESULTADO 100% SEGURO Y CONFIABLE</b> {E_ADN1}\n\n\n"
-            f"{E_COHETE} <b>AVIATOR</b> {E_COHETE}\n\n"
-            f"{E_REGALO} <b>SPACEMAN</b> {E_REGALO}\n\n"
-            f"{E_DIAMANTE} <b>LUCKY JET</b> {E_DIAMANTE}\n\n\n"
-            f"{E_GAFAS} {E_ESTRELLA} ESCRÍBANME AL PRIVADO SI DESEAN MÁS INFORMACIÓN {E_ESTRELLA} {E_GAFAS}\n\n\n\n"
-            f"       {E_ESTRELLA} <a href='{LINK_ADMIN}'><b>ADMIN TELEGRAM</b></a> {E_ESTRELLA}\n\n"
-            f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
-        )
-        
-        lote_promo = [(canal, texto_promo) for canal in CANALES]
-        print("\n[+] Enviando Info Promocional (Ciclo 8 min)...")
-        enviar_mensajes_premium(lote_promo)
+        try:
+            async for dialog in client.iter_dialogs(limit=25):
+                if dialog.is_user:
+                    remitente = dialog.entity
+                    user_id_str = str(remitente.id)
+                    username = f"@{remitente.username}" if remitente.username else ""
+                    
+                    estado_usuario = clientes_atendidos.get(user_id_str, {"fase": 0})
+                    fase_actual = estado_usuario.get("fase", 0)
+                    es_cuenta_de_prueba = (username.lower() in ["@aviatordoi", "@pedritorca"])
 
-# ----------------- HILO PUBLICIDAD (ENVÍA AL INICIO Y LUEGO CADA 25 MIN) -----------------
-def hilo_publicidad_25_minutos():
+                    if not es_cuenta_de_prueba:
+                        total_mensajes_chat = 0
+                        async for _ in client.iter_messages(dialog.entity, limit=5):
+                            total_mensajes_chat += 1
+
+                        if total_mensajes_chat > 3:
+                            continue
+
+                    # ==========================================
+                    # FASE 0: Detectar palabras de inicio ➡️ Enviar texto de bienvenida oficial con emojis 100% premium
+                    # ==========================================
+                    if fase_actual == 0:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.text and not message.out:
+                                texto_cliente = message.text.lower().strip()
+                                coincide_inicio = any(p in texto_cliente for p in palabras_inicio)
+
+                                if coincide_inicio:
+                                    clientes_atendidos[user_id_str] = {
+                                        "fase": 1,
+                                        "fecha": time.strftime("%Y-%m-%d %H:%M:%S")
+                                    }
+                                    guardar_registro_clientes()
+
+                                    print(f"📩 Palabra de inicio detectada de ({username or user_id_str}). Enviando mensaje de bienvenida oficial...")
+                                    
+                                    texto_bienvenida = (
+                                        f"{E_ESTRELLA}<b>HOLA</b>{E_ESTRELLA}\n"
+                                        f"{E_ESTRELLA}<b>MUCHO GUSTO MI NOMBRE ES</b>{E_ESTRELLA}\n\n"
+                                        f"<b>WILLIAM ROBERT</b>\n\n"
+                                        f"{E_REGALO}<b>TE COMENTO CÓMO TRABAJAMOS,</b> {E_COHETE}<b>Y SÍ TE INTERESA ME CONFIRMAS, NOSOTROS TRABAJAMOS</b> {E_DIAMANTE}{E_DIAMANTE}<b>40%</b> {E_DIAMANTE}{E_DIAMANTE}<b>60%</b> {E_DIAMANTE}<b>DE LAS GANANCIAS QUE SE OBTENGAN YA QUE TRABAJAMOS CON APLICACIONES PREDICTOR QUE NOS INDICAN CADA SECUENCIA Y CADA ALGORITMO QUE ESTEMOS LLEVANDO A CABO YA QUE MANEJAMOS RESULTADOS</b> {E_DIAMANTE}<b>100%</b>{E_DIAMANTE}<b>EFECTIVOS SI TE INTERESA TRABAJAR CON NOSOTROS ME CONFIRMA</b>{E_ESTRELLA}\n\n\n"
+                                        f"{E_DIVISAS}<b>PRIMERO GANAS LUEGO PAGAS MANEJAMOS UN RESULTADO 100% SEGURO Y CONFIABLE</b>{E_DIVISAS}\n\n\n"
+                                        f"{E_ESTRELLA}<b>AVIATOR</b> {E_ESTRELLA}\n\n\n"
+                                        f"{E_ESTRELLA}<b>SPACEMAN</b> {E_ESTRELLA}\n\n\n"
+                                        f"{E_ESTRELLA}<b>LUCKY JET</b> {E_ESTRELLA}"
+                                    )
+                                    await client.send_message(dialog.entity, texto_bienvenida, parse_mode='html')
+                                    print(f"✨ Mensaje de bienvenida oficial enviado a: {username or user_id_str}")
+                                break
+
+                    # ==========================================
+                    # FASE 1: Tras el texto de bienvenida ➡️ Enviar texto pidiendo audio de presentación
+                    # ==========================================
+                    elif fase_actual == 1:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.text and not message.out:
+                                clientes_atendidos[user_id_str]["fase"] = 2
+                                guardar_registro_clientes()
+
+                                texto_obligatorio = (
+                                    f"{E_ESTRELLA} <b>HOLA QUE TAL</b> {E_ESTRELLA}\n\n"
+                                    f"{E_ESTRELLA} <b>PRIMERO QUE TODO, PARA PROCEDER ATENDERTE</b> {E_ESTRELLA}\n\n"
+                                    f"{E_COHETE} <b>PROCESO OBLIGATORIO</b> {E_COHETE}\n\n"
+                                    f"{E_ESTRELLA} <b>ENVIAR UN AUDIO</b> {E_ESTRELLA}\n\n"
+                                    f"{E_ESTRELLA} <b>PRESENTÁNDOTE</b> {E_ESTRELLA}\n"
+                                    f"{E_ESTRELLA} <b>CON TU NOMBRE,</b> {E_ESTRELLA} {E_COHETE}\n"
+                                    f"{E_ESTRELLA} <b>TU APELLIDO,</b> {E_ESTRELLA}\n\n"
+                                    f"Y\n\n"
+                                    f"{E_ESTRELLA} <b>EN QUE PLATAFORMA JUEGAS</b> {E_ESTRELLA}\n\n"
+                                    f"{E_ESTRELLA} <b>PARA QUE UNO DE NUESTROS ASESORES PROCEDA ATENDERTE EN UN MOMENTO</b> {E_ESTRELLA}"
+                                )
+                                await client.send_message(dialog.entity, texto_obligatorio, parse_mode='html')
+                                print(f"✨ Solicitud de audio de presentación enviada a: {username or user_id_str}")
+                                break
+
+                    # ==========================================
+                    # FASE 2: Esperando audio de presentación ➡️ Instrucciones de recarga
+                    # ==========================================
+                    elif fase_actual == 2:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.voice and not message.out:
+                                clientes_atendidos[user_id_str]["fase"] = 3
+                                guardar_registro_clientes()
+
+                                texto_recarga = (
+                                    f"{E_REGALO} <b>OK PERFECTO MUY BIEN…</b> {E_REGALO} {E_DIVISAS} <b>PROCEDE A RECARGAR TU CUENTA</b> {E_ADN1} <b>DE JUEGO, CON LA INVERSIÓN QUE</b> {E_DIAMANTE} <b>DESEA HACER CUANDO</b> {E_FLECHA} <b>RECARGUES TU CUENTA DE JUEGO</b> {E_ESTRELLA} <b>ME CONFIRMAS PARA NOTIFICARTE</b> {E_BOLSA} <b>LOS SIGUIENTES PASOS A SEGUIR.</b> {E_COHETE} <b>QUEDO ATENTO. MUCHAS GRACIAS</b> {E_REGALO}"
+                                )
+                                await client.send_message(dialog.entity, texto_recarga, parse_mode='html')
+                                print(f"✨ Instrucciones de recarga enviadas a: {username or user_id_str}")
+                                break
+
+                    # ==========================================
+                    # FASE 3: Tras confirmar recarga ➡️ Términos y Condiciones
+                    # ==========================================
+                    elif fase_actual == 3:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.text and not message.out:
+                                clientes_atendidos[user_id_str]["fase"] = 4
+                                guardar_registro_clientes()
+
+                                texto_terminos = (
+                                    f"{E_BOLSA} <b>OK, COMÉNTAME SI ESTÁS</b> {E_REGALO} "
+                                    f"<b>TOTALMENTE DE ACUERDO CON LOS</b> {E_FLECHA} <b>TÉRMINOS Y CONDICIONES, ES</b> {E_ADN1} "
+                                    f"<b>DECIR 40% DE LAS GANANCIAS</b> {E_ESTRELLA} <b>PARA TI 60% PARA NOSOTROS SI</b> {E_FLECHA} "
+                                    f"<b>ESTÁS TOTALMENTE DE ACUERDO</b> {E_BOLSA} <b>POR FAVOR ME CONFIRMAS. GRACIAS</b> {E_REGALO}"
+                                )
+                                await client.send_message(dialog.entity, texto_terminos, parse_mode='html')
+                                print(f"✨ Mensaje de términos y condiciones enviado a: {username or user_id_str}")
+                                break
+
+                    # ==========================================
+                    # FASE 4: Tras aceptar términos ➡️ Pedir Usuario y Contraseña
+                    # ==========================================
+                    elif fase_actual == 4:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.text and not message.out:
+                                clientes_atendidos[user_id_str]["fase"] = 5
+                                guardar_registro_clientes()
+
+                                texto_conexion = (
+                                    f"{E_BOLSA} <b>OK PERFECTO MUY BIEN, POR</b> {E_BOLSA} "
+                                    f"<b>FAVOR ENVÍAME USUARIO Y</b> {E_BOLSA} "
+                                    f"<b>CONTRASEÑA PARA PROCEDER A</b> {E_COHETE}{E_DIAMANTE} <b>CONECTAR TU CUENTA</b> {E_BOLSA} "
+                                    f"<b>DIRECTAMENTE AL SERVIDOR Y</b> {E_ADN1} "
+                                    f"<b>ASIMISMO PODER COMENZAR A</b> {E_BOLSA} "
+                                    f"<b>INCREMENTAR TUS GANANCIAS POR FAVOR QUEDO ATENTO</b> {E_ADN2}"
+                                )
+                                await client.send_message(dialog.entity, texto_conexion, parse_mode='html')
+                                print(f"✨ Solicitud de usuario y contraseña enviada a: {username or user_id_str}")
+                                break
+
+                    # ==========================================
+                    # FASE 5: Bifurcación (Datos vs Audio de Dudas de AUDIO DUDA)
+                    # ==========================================
+                    elif fase_actual == 5:
+                        async for message in client.iter_messages(dialog.entity, limit=1):
+                            if message and message.text and not message.out:
+                                texto_cliente = message.text.lower()
+
+                                tiene_duda = any(palabra in texto_cliente for palabra in palabras_duda)
+
+                                if tiene_duda:
+                                    print(f"⚠️ Duda o negativa detectada en ({username or user_id_str}). Enviando nota de voz desde AUDIO DUDA...")
+                                    audio_duda_enviado = False
+                                    if os.path.exists(CARPETA_AUDIO_DUDA):
+                                        for archivo in os.listdir(CARPETA_AUDIO_DUDA):
+                                            if archivo.lower().endswith(('.ogg', '.mp3', '.m4a', '.wav', '.oga')):
+                                                ruta_completa = os.path.join(CARPETA_AUDIO_DUDA, archivo)
+                                                await client.send_file(dialog.entity, ruta_completa, voice_note=True)
+                                                print(f"🎤 Nota de voz de duda ({archivo}) enviada con éxito.")
+                                                audio_duda_enviado = True
+                                                break
+                                    if not audio_duda_enviado:
+                                        print(f"⚠️ [Aviso] No se encontró audio en '{CARPETA_AUDIO_DUDA}'.")
+                                    break
+
+                                es_correo = any(dominio in texto_cliente for dominio in dominios_correo)
+                                parece_credenciales = len(texto_cliente.split()) >= 2 or es_correo or len(texto_cliente) > 6
+
+                                if parece_credenciales:
+                                    clientes_atendidos[user_id_str]["fase"] = 6
+                                    guardar_registro_clientes()
+
+                                    texto_saldo = (
+                                        f"{E_ADN1} <b>PERFECTO, EN EL MOMENTO QUE</b> {E_BOLSA} "
+                                        f"<b>NOSOTROS NOS ENCONTRAMOS INCREMENTADOS DE SALDO DE UNA</b> {E_ADN1} "
+                                        f"<b>MANERA SEGURA Y CONFIABLE NECESITO QUE MANTENGAS TU CUENTA DESCONECTADA Y NO INICIA</b> {E_ESTRELLA} "
+                                        f"<b>SESIÓN PARA NO PRESENTAR INCONVENIENTES CON</b> {E_ADN1} "
+                                        f"<b>EL SERVIDOR A</b> {E_COHETE} "
+                                        f"<b>MEDIDA DE ESTAR INCREMENTANDO TU SALDO TE VAMOS A ESTAR ENVIANDO FOTO Y VIDEO DE LAS</b> {E_REGALO} "
+                                        f"<b>GANANCIAS</b> {E_BOLSA} <b>QUE ESTEMOS INCREMENTANDO. GRACIAS ASÍ QUE POR FAVOR CUANDO DESCONECTES TU CUENTA ME CONFIRMAS PARA PODER COMENZAR.</b> {E_BOLSA}"
+                                    )
+                                    await client.send_message(dialog.entity, texto_saldo, parse_mode='html')
+                                    print(f"✨ Instrucciones de cuenta desconectada enviadas a: {username or user_id_str}")
+                                    break
+        except Exception as e:
+            print(f"⚠️ Error en el escáner privado: {e}")
+        
+        await asyncio.sleep(4)
+
+async def main():
+    await client.start()
+    print("🚀 ASISTENTE PRIVADO ACTIVO - BIENVENIDA PREMIUM SIN EMOJIS NORMALES")
+    await asyncio.gather(
+        tarea_escanear_mensajes_privados()
+    )
+
+if __name__ == '__main__':
     while True:
-        texto_publi = (
-            f"{E_ESTRELLA} <b>HOLA</b> {E_ESTRELLA} {E_GAFAS}\n"
-            f"{E_PULGAR} <b>MUCHO GUSTO MI NOMBRE ES</b> {E_PULGAR}\n\n"
-            f"  {E_FLECHA} <b>WILLIAM ROBERT</b> {E_FLECHA}\n\n"
-            f"{E_BOLSA} TE COMENTO CÓMO TRABAJAMOS, {E_COHETE} Y SÍ TE INTERESA ME CONFIRMAS, NOSOTROS TRABAJAMOS {E_DIAMANTE} 40% {E_DIAMANTE} {E_DIVISAS} 60% {E_DIVISAS} DE LAS GANANCIAS QUE SE OBTENGAN YA QUE TRABAJAMOS CON APLICACIONES PREDICTOR QUE NOS INDICAN CADA SECUENCIA Y CADA ALGORITMO QUE ESTEMOS LLEVANDO A CABO YA QUE  MANEJAMOS RESULTADOS {E_DIAMANTE} 100% {E_DIAMANTE} EFECTIVOS SI TE INTERESA TRABAJAR CON NOSOTROS ME CONFIRMA {E_FLECHA}\n\n\n"
-            f"{E_ADN1} <b>PRIEMERO GANAS LUEGO PAGAS MANEJAMOS UN RESULTADO 100% SEGURO Y CONFIABLE</b> {E_ADN1}\n\n\n"
-            f"{E_COHETE} <b>AVIATOR</b> {E_COHETE}\n\n"
-            f"{E_REGALO} <b>SPACEMAN</b> {E_REGALO}\n\n"
-            f"{E_DIAMANTE} <b>LUCKY JET</b> {E_DIAMANTE}\n\n\n"
-            f"{E_GAFAS} {E_ESTRELLA} ESCRÍBANME AL PRIVADO SI DESEAN MÁS INFORMACIÓN {E_ESTRELLA} {E_GAFAS}\n\n\n\n"
-            f"       {E_ESTRELLA} <b>ADMIN TELEGRAM</b> {E_ESTRELLA}\n\n"
-            f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
-        )
-        
-        lote_publi = [(canal, texto_publi) for canal in CANALES]
-        print("\n[+] Enviando Publicidad de confirmación...")
-        enviar_mensajes_premium(lote_publi)
-        
-        time.sleep(25 * 60)
-
-# ----------------- HILO DE SEÑALES (CICLO EXACTO DE 15 MIN) -----------------
-def ejecutar_ciclo_canales():
-    inicio_ciclo = datetime.now(TZ_COL_ECU)
-    plataformas_ronda = random.sample(PLATAFORMAS, len(CANALES))
-
-    print(f"\n--- INICIANDO RONDA DE SEÑALES ({inicio_ciclo.strftime('%I:%M:%S %p')}) ---")
-
-    mensajes_a_enviar = []
-
-    for i, canal_id in enumerate(CANALES):
-        seleccion = plataformas_ronda[i]
-        hora_local = obtener_hora_local(seleccion['pais'])
-        
-        t1 = hora_local + timedelta(minutes=random.randint(3, 5))
-        t2 = t1 + timedelta(minutes=random.randint(5, 7))
-
-        h1 = t1.strftime('%I:%M %p')
-        h2 = t2.strftime('%I:%M %p')
-        x1 = round(random.uniform(1.65, 2.15), 2)
-        x2 = round(random.uniform(1.65, 2.15), 2)
-
-        texto = (
-            f"<b>{seleccion['pais']}</b>\n\n"
-            f"{E_ESTRELLA} ATENCIÓN {E_ESTRELLA}      {E_COHETE} SEÑALES {E_COHETE}\n\n"
-            f"            {E_BOLSA} <b>{seleccion['nombre']}</b> {E_BOLSA}\n\n"
-            f"                {E_FLECHA} <b>{x1}x</b> {E_FLECHA}\n"
-            f"            {E_ADN1} <b>{h1}</b> {E_ADN1}\n\n"
-            f"                {E_FLECHA} <b>{x2}x</b> {E_FLECHA}\n"
-            f"            {E_ADN1} <b>{h2}</b> {E_ADN1}\n\n"
-            f"        {E_REGALO} BUENA SUERTE {E_REGALO}\n"
-            f"{E_DIAMANTE}{E_ESTRELLA}{E_COHETE}{E_PULGAR}{E_DIVISAS}{E_ADN2}{E_DIAMANTE}{E_ESTRELLA}{E_COHETE}{E_PULGAR}\n\n"
-            f"              {E_GAFAS} <a href='{LINK_ADMIN}'><b>ADMIN</b></a> {E_GAFAS}\n\n"
-            f"          {E_DIAMANTE} <a href='{LINK_VIP}'><b>GRUPO VIP</b></a> {E_DIAMANTE}\n\n"
-            f"        {E_REGALO} <a href='{LINK_FREE}'><b>AVIATOR FREE</b></a> {E_REGALO}"
-        )
-        
-        mensajes_a_enviar.append((canal_id, texto))
-
-    enviar_mensajes_premium(mensajes_a_enviar)
-    
-    proximo_ciclo = inicio_ciclo + timedelta(minutes=15)
-    return proximo_ciclo
-
-# ----------------- INICIO DEL SISTEMA -----------------
-async def _verificar():
-    client_test = TelegramClient('sesion_premium', API_ID, API_HASH)
-    await client_test.connect()
-    if not await client_test.is_user_authorized():
-        print("❌ Error crítico: 'sesion_premium.session' no existe o no está autorizada.")
-        sys.exit(1)
-    await client_test.disconnect()
-
-asyncio.run(_verificar())
-
-print("🚀 BOT PREMIUM ACTIVO (SEÑALES AL INSTANTE + PUBLICIDAD DE ARRANQUE)")
-
-threading.Thread(target=hilo_publicidad_25_minutos, daemon=True).start()
-threading.Thread(target=hilo_info_8_minutos, daemon=True).start()
-
-while True:
-    try:
-        hora_proximo_ciclo = ejecutar_ciclo_canales()
-        print(f"⌛ Ciclo de Señales enviado. El próximo arranca EXACTAMENTE a las ({hora_proximo_ciclo.strftime('%I:%M:%S %p')})...")
-        
-        while datetime.now(TZ_COL_ECU) < hora_proximo_ciclo:
-            time.sleep(10) 
-            
-    except KeyboardInterrupt:
-        print("\n🛑 Detenido por el usuario.")
-        break
-    except Exception as e:
-        print(f"⚠️ Error global: {e}")
-        time.sleep(30)
+        try:
+            with client:
+                client.loop.run_until_complete(main())
+        except Exception as e:
+            print(f"⚠️ [AVISO DE RECONEXIÓN] Ocurrió un error general: {e}. Reiniciando en 5 segundos...")
+            time.sleep(5)
