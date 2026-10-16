@@ -2,18 +2,27 @@ import time
 import random
 import asyncio
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from telethon import TelegramClient
 
 # ---------------- CONFIGURACIÓN USERBOT ----------------
-API_ID = 30776682
-API_HASH = 'd2e9ad1c3dda250716a24a73d77ae6a6'
+API_ID = 37928664
+API_HASH = '491d263755797a7f465fd412123b9631'
 
 CANALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo'] 
 
 LINK_ADMIN = 'https://t.me/apkpredictor'
 LINK_VIP = 'https://t.me/+oFnrUl2VKhU1YWJh'
 LINK_FREE = 'https://www.apkpredictoraviator.com'
+
+# --- ZONAS HORARIAS REALES ---
+TZ_COL = timezone(timedelta(hours=-5))  # Colombia, Ecuador, Global
+TZ_MEX = timezone(timedelta(hours=-6))  # México
+
+def obtener_hora_local(pais_str):
+    if "MÉXICO" in pais_str:
+        return datetime.now(TZ_MEX)
+    return datetime.now(TZ_COL)
 
 # --- EMOJIS PREMIUM ---
 E_ESTRELLA = '<tg-emoji emoji-id="5370784581341422520">⭐️</tg-emoji>'
@@ -61,7 +70,6 @@ def enviar_mensajes_premium(lote_mensajes):
 def hilo_info_8_minutos():
     while True:
         time.sleep(8 * 60)
-        
         texto_promo = (
             f"{E_ESTRELLA} <b>HOLA</b> {E_ESTRELLA} {E_GAFAS}\n"
             f"{E_PULGAR} <b>MUCHO GUSTO MI NOMBRE ES</b> {E_PULGAR}\n\n"
@@ -75,7 +83,6 @@ def hilo_info_8_minutos():
             f"       {E_ESTRELLA} <a href='{LINK_ADMIN}'><b>ADMIN TELEGRAM</b></a> {E_ESTRELLA}\n\n"
             f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
         )
-        
         lote_promo = [(canal, texto_promo) for canal in CANALES]
         print("\n[+] Enviando Info Promocional (Ciclo 8 min)...")
         enviar_mensajes_premium(lote_promo)
@@ -96,26 +103,23 @@ def hilo_publicidad_25_minutos():
             f"       {E_ESTRELLA} <b>ADMIN TELEGRAM</b> {E_ESTRELLA}\n\n"
             f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
         )
-        
         lote_publi = [(canal, texto_publi) for canal in CANALES]
         print("\n[+] Enviando Publicidad de confirmación...")
         enviar_mensajes_premium(lote_publi)
-        
         time.sleep(25 * 60)
 
 # ----------------- HILO DE SEÑALES (CICLO EXACTO DE 15 MIN) -----------------
 def ejecutar_ciclo_canales():
-    inicio_ciclo = datetime.now()
+    inicio_ciclo = datetime.now(TZ_COL)
     plataformas_ronda = random.sample(PLATAFORMAS, len(CANALES))
 
-    print(f"\n--- INICIANDO RONDA DE SEÑALES ({inicio_ciclo.strftime('%H:%M:%S')}) ---")
-
+    print(f"\n--- INICIANDO RONDA DE SEÑALES ({inicio_ciclo.strftime('%I:%M:%S %p')}) ---")
     mensajes_a_enviar = []
 
     for i, canal_id in enumerate(CANALES):
         seleccion = plataformas_ronda[i]
-        
-        t1 = inicio_ciclo + timedelta(minutes=random.randint(3, 5))
+        hora_local = obtener_hora_local(seleccion['pais'])
+        t1 = hora_local + timedelta(minutes=random.randint(3, 5))
         t2 = t1 + timedelta(minutes=random.randint(5, 7))
 
         h1 = t1.strftime('%I:%M %p')
@@ -137,18 +141,19 @@ def ejecutar_ciclo_canales():
             f"          {E_DIAMANTE} <a href='{LINK_VIP}'><b>GRUPO VIP</b></a> {E_DIAMANTE}\n\n"
             f"        {E_REGALO} <a href='{LINK_FREE}'><b>AVIATOR FREE</b></a> {E_REGALO}"
         )
-        
         mensajes_a_enviar.append((canal_id, texto))
 
     enviar_mensajes_premium(mensajes_a_enviar)
-    
     proximo_ciclo = inicio_ciclo + timedelta(minutes=15)
     return proximo_ciclo
 
 # ----------------- INICIO DEL SISTEMA -----------------
-client_test = TelegramClient('sesion_premium', API_ID, API_HASH)
-client_test.start()
-client_test.disconnect()
+async def _verificar_conexion():
+    client_test = TelegramClient('sesion_premium', API_ID, API_HASH)
+    await client_test.connect()
+    await client_test.disconnect()
+
+asyncio.run(_verificar_conexion())
 
 print("🚀 BOT PREMIUM ACTIVO (SEÑALES AL INSTANTE + PUBLICIDAD DE ARRANQUE)")
 
@@ -158,11 +163,9 @@ threading.Thread(target=hilo_info_8_minutos, daemon=True).start()
 while True:
     try:
         hora_proximo_ciclo = ejecutar_ciclo_canales()
-        print(f"⌛ Ciclo de Señales enviado. El próximo arranca EXACTAMENTE a las ({hora_proximo_ciclo.strftime('%H:%M:%S')})...")
-        
-        while datetime.now() < hora_proximo_ciclo:
-            time.sleep(10) 
-            
+        print(f"⌛ Ciclo de Señales enviado. El próximo arranca EXACTAMENTE a las ({hora_proximo_ciclo.strftime('%I:%M:%S %p')})...")
+        while datetime.now(TZ_COL) < hora_proximo_ciclo:
+            time.sleep(10)
     except KeyboardInterrupt:
         print("\n🛑 Detenido por el usuario.")
         break
