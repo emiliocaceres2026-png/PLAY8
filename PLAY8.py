@@ -1,190 +1,159 @@
+import os
 import sys
-sys.stdout.reconfigure(line_buffering=True)
+import time
+import random
+import asyncio
+from datetime import datetime, timedelta
+from telethon import TelegramClient
 
-import time, os, psutil, random, gc
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.firefox import GeckoDriverManager
+# ---------------- CONFIGURACIÓN USERBOT ----------------
+API_ID = int(os.environ.get("API_ID", 30776682))
+API_HASH = os.environ.get("API_HASH", "d2e9ad1c3dda250716a24a73d77ae6a6")
 
-LINKS = [
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634024Pvxefok6a414lpu0ww34&balance=0&currency=USD&userid=12575149&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634049Pcq9cf2m9djtn6z2tdhi&balance=0&currency=USD&userid=12575174&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634061P05jk63g3nsxd7obbrx4&balance=0&currency=USD&userid=12575186&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634090Pzi1kv8a0v5gan1zb213&balance=0&currency=USD&userid=12575216&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634109Pap6jx3stqn9l5ncktmk&balance=0&currency=USD&userid=12575235&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634118Pjf1dcttaimzd2j9ck4v&balance=0&currency=USD&userid=12575244&isMobile=false",
-    "https://casino.virtualsoft.tech/game/play/?gameid=203831&mode=real&provider=SPRIBE&lan=es&partnerid=8&token=0P12634133Pfsyhsvb4sbu6l5rps91&balance=0&currency=USD&userid=12575259&isMobile=false"
+CANALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo']
+
+LINK_ADMIN = 'https://t.me/apkpredictor'
+LINK_VIP = 'https://t.me/+oFnrUl2VKhU1YWJh'
+LINK_FREE = 'https://www.apkpredictoraviator.com'
+
+# --- EMOJIS PREMIUM ---
+E_ESTRELLA = '<tg-emoji emoji-id="5370784581341422520">⭐️</tg-emoji>'
+E_GAFAS = '<tg-emoji emoji-id="5235684778727974441">😎</tg-emoji>'
+E_PULGAR = '<tg-emoji emoji-id="5393130162311157022">👍</tg-emoji>'
+E_FLECHA = '<tg-emoji emoji-id="5429651785352501917">↗️</tg-emoji>'
+E_BOLSA = '<tg-emoji emoji-id="5453901475648390219">🛍</tg-emoji>'
+E_COHETE = '<tg-emoji emoji-id="5188481279963715781">🚀</tg-emoji>'
+E_DIVISAS = '<tg-emoji emoji-id="5377336227533969892">💱</tg-emoji>'
+E_ADN1 = '<tg-emoji emoji-id="5215621964286142449">🧬</tg-emoji>'
+E_REGALO = '<tg-emoji emoji-id="5215668908278686541">🎁</tg-emoji>'
+E_ADN2 = '<tg-emoji emoji-id="5215673679987355184">🧬</tg-emoji>'
+E_DIAMANTE = '<tg-emoji emoji-id="6059684519437405439">💎</tg-emoji>'
+
+PLATAFORMAS = [
+    {"nombre": "ECUABET", "pais": f"{E_DIAMANTE} ECUADOR {E_DIAMANTE}"},
+    {"nombre": "DORADOBET", "pais": f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
+    {"nombre": "BETPLAY", "pais": f"{E_DIAMANTE} COLOMBIA {E_DIAMANTE}"},
+    {"nombre": "RUSBETH", "pais": f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
+    {"nombre": "BETSON", "pais": f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
+    {"nombre": "BETMEXICO", "pais": f"{E_DIAMANTE} MÉXICO {E_DIAMANTE}"},
+    {"nombre": "1XBET", "pais": f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"},
+    {"nombre": "1WIN", "pais": f"{E_DIAMANTE} GLOBAL {E_DIAMANTE}"}
 ]
 
-PLANTILLA_BASE = "Quieres Ganar Mas de 2 mil en 45 minutoｓ Escribeme al Whatsapp⚡ ✅𝐎𝟗𝟔𝟖𝟖𝟑𝟐𝟑𝟎𝟎✅⚓𝚃𝙴L𝙴𝙶𝚁AM😚✅𝙰𝚅𝙸𝙰𝚃𝙾𝚁𝙿𝙺𝙰✅Sin 𝙿agos adelantadoss⚓⚡⛳⛺➕➗VAR_3"
-EMOJIS_POOL = list("😎😷😋😍😘😝😉😙🤓🔥💧👸😏🤑🤗👊✊👍💥👌👈👇👆👉👅👄🤘🙆💆💙💜💛💚👑🎩🙋💃🐽💗💌🤖🐺🐶💎🐦🐤🐥🐞🦄🐠🦀🦁🐼🐴🐒🐵➗🌹🌻🍄💐🌵🐩💵🎁💰")
+client = TelegramClient('sesion_premium', API_ID, API_HASH)
 
-historial_enviados = set()
+async def enviar_lote(lote_mensajes):
+    for canal_id, texto in lote_mensajes:
+        try:
+            await client.send_message(canal_id, texto, parse_mode='html', link_preview=False)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ {canal_id}: Mensaje enviado.")
+        except Exception as e:
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Error en {canal_id}: {e}")
+        await asyncio.sleep(3)
 
-def generar_mensaje_unico():
-    global historial_enviados
-    if len(historial_enviados) >= 10000: 
-        historial_enviados.clear()
-        
-    for _ in range(5000):
-        e1 = random.choice(EMOJIS_POOL)
-        e2 = random.choice(EMOJIS_POOL)
-        e3 = random.choice(EMOJIS_POOL)
-        ultimos_tres = e1 + e2 + e3
-        
-        msg_final = PLANTILLA_BASE.replace("VAR_3", ultimos_tres)
-        
-        if msg_final not in historial_enviados:
-            historial_enviados.add(msg_final)
-            return msg_final
-            
-    return PLANTILLA_BASE.replace("VAR_3", "🔥💧👸")
+async def tarea_promo_8_min():
+    while True:
+        await asyncio.sleep(8 * 60)
+        texto_promo = (
+            f"{E_ESTRELLA} <b>HOLA</b> {E_ESTRELLA} {E_GAFAS}\n"
+            f"{E_PULGAR} <b>MUCHO GUSTO MI NOMBRE ES</b> {E_PULGAR}\n\n"
+            f"  {E_FLECHA} <b>WILLIAM ROBERT</b> {E_FLECHA}\n\n"
+            f"{E_BOLSA} TE COMENTO CÓMO TRABAJAMOS, {E_COHETE} Y SÍ TE INTERESA ME CONFIRMAS, "
+            f"NOSOTROS TRABAJAMOS {E_DIAMANTE} 40% {E_DIAMANTE} {E_DIVISAS} 60% {E_DIVISAS} DE LAS GANANCIAS "
+            f"QUE SE OBTENGAN YA QUE TRABAJAMOS CON APLICACIONES PREDICTOR QUE NOS INDICAN CADA SECUENCIA "
+            f"Y CADA ALGORITMO QUE ESTEMOS LLEVANDO A CABO YA QUE MANEJAMOS RESULTADOS "
+            f"{E_DIAMANTE} 100% {E_DIAMANTE} EFECTIVOS SI TE INTERESA TRABAJAR CON NOSOTROS ME CONFIRMA {E_FLECHA}\n\n\n"
+            f"{E_ADN1} <b>PRIEMERO GANAS LUEGO PAGAS MANEJAMOS UN RESULTADO 100% SEGURO Y CONFIABLE</b> {E_ADN1}\n\n\n"
+            f"{E_COHETE} <b>AVIATOR</b> {E_COHETE}\n\n"
+            f"{E_REGALO} <b>SPACEMAN</b> {E_REGALO}\n\n"
+            f"{E_DIAMANTE} <b>LUCKY JET</b> {E_DIAMANTE}\n\n\n"
+            f"{E_GAFAS} {E_ESTRELLA} ESCRÍBANME AL PRIVADO SI DESEAN MÁS INFORMACIÓN {E_ESTRELLA} {E_GAFAS}\n\n\n\n"
+            f"       {E_ESTRELLA} <a href='{LINK_ADMIN}'><b>ADMIN TELEGRAM</b></a> {E_ESTRELLA}\n\n"
+            f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
+        )
+        lote = [(canal, texto_promo) for canal in CANALES]
+        print(f"\n[+] Enviando Info Promocional (Ciclo 8 min)...")
+        await enviar_lote(lote)
 
-def limpiar_especifico(pid):
+async def tarea_publicidad_25_min():
+    while True:
+        texto_publi = (
+            f"{E_ESTRELLA} <b>HOLA</b> {E_ESTRELLA} {E_GAFAS}\n"
+            f"{E_PULGAR} <b>MUCHO GUSTO MI NOMBRE ES</b> {E_PULGAR}\n\n"
+            f"  {E_FLECHA} <b>WILLIAM ROBERT</b> {E_FLECHA}\n\n"
+            f"{E_BOLSA} TE COMENTO CÓMO TRABAJAMOS, {E_COHETE} Y SÍ TE INTERESA ME CONFIRMAS, "
+            f"NOSOTROS TRABAJAMOS {E_DIAMANTE} 40% {E_DIAMANTE} {E_DIVISAS} 60% {E_DIVISAS} DE LAS GANANCIAS "
+            f"QUE SE OBTENGAN YA QUE TRABAJAMOS CON APLICACIONES PREDICTOR QUE NOS INDICAN CADA SECUENCIA "
+            f"Y CADA ALGORITMO QUE ESTEMOS LLEVANDO A CABO YA QUE MANEJAMOS RESULTADOS "
+            f"{E_DIAMANTE} 100% {E_DIAMANTE} EFECTIVOS SI TE INTERESA TRABAJAR CON NOSOTROS ME CONFIRMA {E_FLECHA}\n\n\n"
+            f"{E_ADN1} <b>PRIEMERO GANAS LUEGO PAGAS MANEJAMOS UN RESULTADO 100% SEGURO Y CONFIABLE</b> {E_ADN1}\n\n\n"
+            f"{E_COHETE} <b>AVIATOR</b> {E_COHETE}\n\n"
+            f"{E_REGALO} <b>SPACEMAN</b> {E_REGALO}\n\n"
+            f"{E_DIAMANTE} <b>LUCKY JET</b> {E_DIAMANTE}\n\n\n"
+            f"{E_GAFAS} {E_ESTRELLA} ESCRÍBANME AL PRIVADO SI DESEAN MÁS INFORMACIÓN {E_ESTRELLA} {E_GAFAS}\n\n\n\n"
+            f"       {E_ESTRELLA} <b>ADMIN TELEGRAM</b> {E_ESTRELLA}\n\n"
+            f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
+        )
+        lote = [(canal, texto_publi) for canal in CANALES]
+        print(f"\n[+] Enviando Publicidad de confirmación (Ciclo 25 min)...")
+        await enviar_lote(lote)
+        await asyncio.sleep(25 * 60)
+
+async def tarea_senales_15_min():
+    while True:
+        inicio_ciclo = datetime.now()
+        plataformas_ronda = random.sample(PLATAFORMAS, len(CANALES))
+        print(f"\n--- INICIANDO RONDA DE SEÑALES ({inicio_ciclo.strftime('%H:%M:%S')}) ---")
+
+        mensajes_a_enviar = []
+        for i, canal_id in enumerate(CANALES):
+            seleccion = plataformas_ronda[i]
+            t1 = inicio_ciclo + timedelta(minutes=random.randint(3, 5))
+            t2 = t1 + timedelta(minutes=random.randint(5, 7))
+
+            h1 = t1.strftime('%I:%M %p')
+            h2 = t2.strftime('%I:%M %p')
+            x1 = round(random.uniform(1.65, 2.15), 2)
+            x2 = round(random.uniform(1.65, 2.15), 2)
+
+            texto = (
+                f"<b>{seleccion['pais']}</b>\n\n"
+                f"{E_ESTRELLA} ATENCIÓN {E_ESTRELLA}      {E_COHETE} SEÑALES {E_COHETE}\n\n"
+                f"            {E_BOLSA} <b>{seleccion['nombre']}</b> {E_BOLSA}\n\n"
+                f"                {E_FLECHA} <b>{x1}x</b> {E_FLECHA}\n"
+                f"            {E_ADN1} <b>{h1}</b> {E_ADN1}\n\n"
+                f"                {E_FLECHA} <b>{x2}x</b> {E_FLECHA}\n"
+                f"            {E_ADN1} <b>{h2}</b> {E_ADN1}\n\n"
+                f"        {E_REGALO} BUENA SUERTE {E_REGALO}\n"
+                f"{E_DIAMANTE}{E_ESTRELLA}{E_COHETE}{E_PULGAR}{E_DIVISAS}{E_ADN2}{E_DIAMANTE}{E_ESTRELLA}{E_COHETE}{E_PULGAR}\n\n"
+                f"              {E_GAFAS} <a href='{LINK_ADMIN}'><b>ADMIN</b></a> {E_GAFAS}\n\n"
+                f"          {E_DIAMANTE} <a href='{LINK_VIP}'><b>GRUPO VIP</b></a> {E_DIAMANTE}\n\n"
+                f"        {E_REGALO} <a href='{LINK_FREE}'><b>AVIATOR FREE</b></a> {E_REGALO}"
+            )
+            mensajes_a_enviar.append((canal_id, texto))
+
+        await enviar_lote(mensajes_a_enviar)
+        proximo_ciclo = inicio_ciclo + timedelta(minutes=15)
+        segundos_espera = max(0, (proximo_ciclo - datetime.now()).total_seconds())
+        print(f"⌛ Próxima ronda de señales en {int(segundos_espera)} segundos...")
+        await asyncio.sleep(segundos_espera)
+
+async def main():
+    await client.connect()
+    if not await client.is_user_authorized():
+        print("❌ Error: La sesión no está autorizada. Debes proveer una sesion_premium.session válida.")
+        sys.exit(1)
+
+    print("🚀 BOT PREMIUM ACTIVO Y CONECTADO A TELEGRAM")
+
+    await asyncio.gather(
+        tarea_publicidad_25_min(),
+        tarea_promo_8_min(),
+        tarea_senales_15_min()
+    )
+
+if __name__ == '__main__':
     try:
-        p = psutil.Process(pid)
-        for hijo in p.children(recursive=True): hijo.kill()
-        p.kill()
-    except: pass
-    gc.collect()
-
-def iniciar():
-    opt = Options()
-    opt.add_argument("-headless")
-    opt.set_preference("browser.cache.disk.enable", False)
-    opt.set_preference("browser.cache.memory.enable", False)
-    driver = webdriver.Firefox(service=Service(GeckoDriverManager().install()), options=opt)
-    try: driver.set_window_size(1920, 1080)
-    except: pass
-    return driver
-
-def buscar_campo_texto(dr):
-    try:
-        caja = dr.find_elements(By.TAG_NAME, "textarea")
-        if not caja: caja = dr.find_elements(By.CSS_SELECTOR, "input[type='text'], [contenteditable='true'], .chat-input, .message-input")
-        if caja: return caja[0]
-        iframes = dr.find_elements(By.TAG_NAME, "iframe")
-        for frame in iframes:
-            try:
-                dr.switch_to.frame(frame)
-                caja = dr.find_elements(By.TAG_NAME, "textarea")
-                if not caja: caja = dr.find_elements(By.CSS_SELECTOR, "input[type='text'], [contenteditable='true'], .chat-input, .message-input")
-                if caja: return caja[0]
-                sub_caja = buscar_campo_texto(dr)
-                if sub_caja: return sub_caja
-                dr.switch_to.parent_frame()
-            except:
-                try: dr.switch_to.default_content()
-                except: pass
-    except: pass
-    return None
-
-def abrir_y_verificar_tags_todos(dr):
-    print("⏳ [LITHIUMS8 - HEADLESS] Abriendo y preparando todos los chats en segundo plano...")
-    handles = []
-    for i, url in enumerate(LINKS):
-        if i == 0:
-            dr.get(url)
-        else:
-            dr.execute_script(f"window.open('{url}', '_blank');")
-            time.sleep(0.5)
-        
-        pestanas = dr.window_handles
-        current_handle = pestanas[-1]
-        handles.append(current_handle)
-        dr.switch_to.window(current_handle)
-        
-        listo = False; intentos = 0
-        while not listo and intentos < 12:
-            dr.switch_to.default_content()
-            if buscar_campo_texto(dr):
-                listo = True
-                break
-            time.sleep(1); intentos += 1
-        time.sleep(1)
-    
-    dr.switch_to.default_content()
-    return handles
-
-def disparar_con_protocolo_seguro(dr, handle, idx, msg):
-    try:
-        dr.switch_to.window(handle)
-        dr.switch_to.default_content()
-        target = buscar_campo_texto(dr)
-        
-        if target:
-            try: target.click()
-            except: pass
-            
-            try:
-                target.send_keys(Keys.CONTROL + "a")
-                target.send_keys(Keys.BACKSPACE)
-            except: pass
-            
-            target.send_keys(msg)
-            
-            val_actual = target.get_attribute("value") or target.text
-            if not val_actual or len(val_actual) < 10:
-                dr.execute_script("arguments[0].value = arguments[1];", target, msg)
-            
-            target.send_keys(Keys.ENTER)
-            return True
-    except:
-        pass
-    finally:
-        try: dr.switch_to.default_content()
-        except: pass
-    return False
-
-def run():
-    dr = iniciar()
-    pid = dr.service.process.pid
-    total_disparos_global = 0
-    MAX_DISPAROS_CICLO = 1200
-    
-    try:
-        handles = abrir_y_verificar_tags_todos(dr)
-        num_tags = len(handles)
-        
-        proximo_disparo_por_tag = {i: 0.0 for i in range(num_tags)}
-        
-        print(f"\n🚀 [LITHIUMS8 ACTIONS] INICIANDO RACHAS INTELIGENTES ({num_tags} chats activos)...")
-        
-        while total_disparos_global < MAX_DISPAROS_CICLO:
-            ahora = time.time()
-            disparo_realizado_en_iteracion = False
-            
-            for idx in range(num_tags):
-                if total_disparos_global >= MAX_DISPAROS_CICLO:
-                    break
-                
-                if ahora >= proximo_disparo_por_tag[idx]:
-                    msg = generar_mensaje_unico()
-                    
-                    if disparar_con_protocolo_seguro(dr, handles[idx], idx, msg):
-                        total_disparos_global += 1
-                        disparo_realizado_en_iteracion = True
-                        print(f"    ⚡ [LITHIUMS8] Chat #{idx+1} enviado | Total ciclo: {total_disparos_global}/{MAX_DISPAROS_CICLO}")
-                        
-                        proximo_disparo_por_tag[idx] = time.time() + 5.0
-            
-            if not disparo_realizado_en_iteracion:
-                time.sleep(0.1)
-        
-        print(f"\n🎯 [LITHIUMS8] META DE {MAX_DISPAROS_CICLO} ALCANZADA.")
-        
-    except Exception as e:
-        print(f"⚠️ [LITHIUMS8] Error en ejecución: {e}")
-    finally:
-        try: dr.quit()
-        except: pass
-        limpiar_especifico(pid)
-        historial_enviados.clear()
-        gc.collect()
-        print("🔄 [LITHIUMS8] Ciclo finalizado correctamente en GitHub Actions.\n")
-
-if __name__ == "__main__": 
-    run()
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n🛑 Proceso detenido.")
