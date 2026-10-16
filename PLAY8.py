@@ -3,21 +3,20 @@ import sys
 import time
 import random
 import asyncio
-import re
 from datetime import datetime, timedelta
 from telethon import TelegramClient
 from telethon.tl.functions.messages import ImportChatInviteRequest
 
 API_ID = 30776682
 API_HASH = 'd2e9ad1c3dda250716a24a73d77ae6a6'
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "8932126962:AAGB2AuiHVkV6XtLWiTb-Y7msfpsscYNqB8")
 
-CANALES_ORIGINALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo']
+CANALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo']
 
 LINK_ADMIN = 'https://t.me/apkpredictor'
 LINK_VIP = 'https://t.me/+oFnrUl2VKhU1YWJh'
 LINK_FREE = 'https://www.apkpredictoraviator.com'
 
+# --- EMOJIS PREMIUM ---
 E_ESTRELLA = '<tg-emoji emoji-id="5370784581341422520">⭐️</tg-emoji>'
 E_GAFAS = '<tg-emoji emoji-id="5235684778727974441">😎</tg-emoji>'
 E_PULGAR = '<tg-emoji emoji-id="5393130162311157022">👍</tg-emoji>'
@@ -42,41 +41,50 @@ PLATAFORMAS = [
 ]
 
 client = TelegramClient('sesion_premium', API_ID, API_HASH)
-canales_resueltos = []
+canales_activos = []
 
-async def resolver_canales():
-    global canales_resueltos
-    for item in CANALES_ORIGINALES:
-        item = item.strip()
+async def conectar_y_resolver():
+    global canales_activos
+    await client.connect()
+    
+    if not await client.is_user_authorized():
+        print("❌ Error crítico: sesion_premium.session no está iniciada o no existe.")
+        print("Debes subir el archivo 'sesion_premium.session' generado en tu PC a GitHub.")
+        sys.exit(1)
+
+    print("✅ Autenticado como cuenta de usuario real en Telegram.")
+
+    for c in CANALES:
+        c = c.strip()
         try:
-            if "+oFnrUl2VKhU1YWJh" in item or "/+" in item:
-                hash_invitacion = item.split("+")[-1].replace("/", "")
+            if "+oFnrUl2VKhU1YWJh" in c or "/+" in c:
+                invite_hash = c.split("+")[-1].replace("/", "")
                 try:
-                    chat = await client(ImportChatInviteRequest(hash_invitacion))
-                    canales_resueltos.append(chat.chats[0])
-                    print(f"✅ Unido/Resuelto canal privado: {hash_invitacion}")
+                    await client(ImportChatInviteRequest(invite_hash))
+                    print(f"✅ Unido al canal privado: {invite_hash}")
                 except Exception:
-                    entidad = await client.get_entity(item)
-                    canales_resueltos.append(entidad)
+                    pass
+                entidad = await client.get_entity(c)
+                canales_activos.append(entidad)
             else:
-                limpio = item.replace("https://t.me/", "@").replace("t.me/", "@")
+                limpio = c.replace("https://t.me/", "@").replace("t.me/", "@")
                 if not limpio.startswith("@") and not limpio.startswith("-100"):
                     limpio = f"@{limpio}"
                 entidad = await client.get_entity(limpio)
-                canales_resueltos.append(entidad)
-                print(f"✅ Resuelto: {limpio}")
-        except Exception as e:
-            print(f"⚠️ No se pudo resolver automáticamente '{item}': {e}")
-            limpio = item.replace("https://t.me/", "@").replace("t.me/", "@")
-            canales_resueltos.append(limpio)
+                canales_activos.append(entidad)
+                print(f"✅ Canal resuelto: {limpio}")
+        except Exception as err:
+            print(f"⚠️ Error al resolver canal {c}: {err}")
 
 async def enviar_lote(lote_mensajes):
     for canal, texto in lote_mensajes:
         try:
             await client.send_message(canal, texto, parse_mode='html', link_preview=False)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ Enviado a {getattr(canal, 'title', canal)}")
+            nombre = getattr(canal, 'title', canal)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ Enviado a: {nombre}")
         except Exception as e:
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Error en {getattr(canal, 'title', canal)}: {e}")
+            nombre = getattr(canal, 'title', canal)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Error en {nombre}: {e}")
         await asyncio.sleep(3)
 
 async def tarea_promo_8_min():
@@ -99,7 +107,7 @@ async def tarea_promo_8_min():
             f"       {E_ESTRELLA} <a href='{LINK_ADMIN}'><b>ADMIN TELEGRAM</b></a> {E_ESTRELLA}\n\n"
             f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
         )
-        lote = [(c, texto_promo) for c in canales_resueltos]
+        lote = [(c, texto_promo) for c in canales_activos]
         print(f"\n[+] Enviando Info Promocional (Ciclo 8 min)...")
         await enviar_lote(lote)
 
@@ -122,7 +130,7 @@ async def tarea_publicidad_25_min():
             f"       {E_ESTRELLA} <b>ADMIN TELEGRAM</b> {E_ESTRELLA}\n\n"
             f"       {E_PULGAR} <a href='{LINK_ADMIN}'><b>CONTACTAR</b></a> {E_PULGAR}"
         )
-        lote = [(c, texto_publi) for c in canales_resueltos]
+        lote = [(c, texto_publi) for c in canales_activos]
         print(f"\n[+] Enviando Publicidad de confirmación (Ciclo 25 min)...")
         await enviar_lote(lote)
         await asyncio.sleep(25 * 60)
@@ -130,11 +138,11 @@ async def tarea_publicidad_25_min():
 async def tarea_senales_15_min():
     while True:
         inicio_ciclo = datetime.now()
-        plataformas_ronda = random.sample(PLATAFORMAS, min(len(PLATAFORMAS), len(canales_resueltos)))
+        plataformas_ronda = random.sample(PLATAFORMAS, min(len(PLATAFORMAS), len(canales_activos)))
         print(f"\n--- INICIANDO RONDA DE SEÑALES ({inicio_ciclo.strftime('%H:%M:%S')}) ---")
 
         mensajes_a_enviar = []
-        for i, canal in enumerate(canales_resueltos):
+        for i, canal in enumerate(canales_activos):
             seleccion = plataformas_ronda[i % len(plataformas_ronda)]
             t1 = inicio_ciclo + timedelta(minutes=random.randint(3, 5))
             t2 = t1 + timedelta(minutes=random.randint(5, 7))
@@ -167,14 +175,8 @@ async def tarea_senales_15_min():
         await asyncio.sleep(segundos_espera)
 
 async def main():
-    if os.path.exists("sesion_premium.session"):
-        await client.connect()
-    else:
-        print("[+] Conectando mediante Bot Token...")
-        await client.start(bot_token=BOT_TOKEN)
-
-    print("🚀 BOT PREMIUM ACTIVO Y CONECTADO A TELEGRAM")
-    await resolver_canales()
+    await conectar_y_resolver()
+    print("🚀 BOT PREMIUM ACTIVO Y ENVIANDO MENSAJES")
 
     await asyncio.gather(
         tarea_publicidad_25_min(),
