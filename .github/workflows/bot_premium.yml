@@ -28,11 +28,12 @@ jobs:
           pip install telethon cryptg
 
       - name: Restaurar sesion de Telethon
-        if: ${{ secrets.TELETHON_SESSION_BASE64 != '' }}
         env:
           TELETHON_SESSION_BASE64: ${{ secrets.TELETHON_SESSION_BASE64 }}
         run: |
-          echo "$TELETHON_SESSION_BASE64" | base64 --decode > sesion_premium.session
+          if [ -n "$TELETHON_SESSION_BASE64" ]; then
+            echo "$TELETHON_SESSION_BASE64" | base64 --decode > sesion_premium.session
+          fi
 
       - name: Ejecutar PLAY8.py
         run: |
