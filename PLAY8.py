@@ -6,9 +6,12 @@ import asyncio
 from datetime import datetime, timedelta
 from telethon import TelegramClient
 
-# ---------------- CONFIGURACIÓN USERBOT ----------------
-API_ID = int(os.environ.get("API_ID", 30776682))
-API_HASH = os.environ.get("API_HASH", "d2e9ad1c3dda250716a24a73d77ae6a6")
+# ---------------- CONFIGURACIÓN USERBOT / BOT ----------------
+API_ID = 30776682
+API_HASH = 'd2e9ad1c3dda250716a24a73d77ae6a6'
+
+# Si tienes un bot token de BotFather, puedes colocarlo aquí para que no pida login interactivo:
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "8932126962:AAGB2AuiHVkV6XtLWiTb-Y7msfpsscYNqB8")
 
 CANALES = ['@AVIATORPKA', 't.me/+oFnrUl2VKhU1YWJh', 'https://t.me/aviatordo']
 
@@ -46,7 +49,7 @@ async def enviar_lote(lote_mensajes):
     for canal_id, texto in lote_mensajes:
         try:
             await client.send_message(canal_id, texto, parse_mode='html', link_preview=False)
-            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ {canal_id}: Mensaje enviado.")
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] ✅ {canal_id}: Enviado.")
         except Exception as e:
             print(f"[{datetime.now().strftime('%H:%M:%S')}] ❌ Error en {canal_id}: {e}")
         await asyncio.sleep(3)
@@ -139,9 +142,13 @@ async def tarea_senales_15_min():
         await asyncio.sleep(segundos_espera)
 
 async def main():
-    await client.connect()
-    if not await client.is_user_authorized():
-        print("❌ Error: La sesión no está autorizada. Debes proveer una sesion_premium.session válida.")
+    if os.path.exists("sesion_premium.session"):
+        await client.connect()
+    elif BOT_TOKEN:
+        print("[+] Iniciando sesion con Token de Bot...")
+        await client.start(bot_token=BOT_TOKEN)
+    else:
+        print("❌ No hay sesion_premium.session ni BOT_TOKEN configurado.")
         sys.exit(1)
 
     print("🚀 BOT PREMIUM ACTIVO Y CONECTADO A TELEGRAM")
